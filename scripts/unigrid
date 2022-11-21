@@ -1,0 +1,219 @@
+#!/bin/bash
+# shellcheck disable=SC2034
+# Copyright © 2021-2022 The Unigrid Foundation, UGD Software AB
+
+# This program is free software: you can redistribute it and/or modify it under the terms of the
+# addended GNU Affero General Public License as published by the Free Software Foundation, version 3
+# of the License (see COPYING and COPYING.addendum).
+
+# This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+
+# You should have received an addended copy of the GNU Affero General Public License with this program.
+# If not, see <http://www.gnu.org/licenses/> and <https://github.com/unigrid-project/unigrid-installer>.
+
+# This is a service script for commands on all containers
+
+CYAN='\033[0;36m'
+BLUE="\033[1;34m"
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+ORANGE='\033[0;33m'
+NAME='unigrid'
+
+ASCII_ART() {
+    echo -e "${ORANGE}"
+    clear 2>/dev/null
+    cat <<"UNIGRID"
+ _   _ _   _ ___ ____ ____  ___ ____
+| | | | \ | |_ _/ ___|  _ \|_ _|  _ \
+| | | |  \| || | |  _| |_) || || | | |
+| |_| | |\  || | |_| |  _ < | || |_| |
+ \___/|_| \_|___\____|_| \_\___|____/
+
+Copyright © 2021-2022 The Unigrid Foundation, UGD Software AB 
+
+UNIGRID
+}
+
+GET_STATUS() {
+    echo -e "${BLUE}Gridnode container status"
+    docker ps -a --format "table {{.Names}}\t{{.RunningFor}}\t{{.Status}}"
+}
+
+DEBUG() {
+    echo -e "${BLUE}Gridnode debug"
+    CONTAINERS=$(docker ps -a --no-trunc --format '{{.Names}}' | tr '\n' ' ')
+    sleep 0.1
+    declare -a ARR=($CONTAINERS)
+    for s in "${ARR[@]}"; do
+        if [[ "$s" != 'watchtower' ]]; then
+            echo -e "${BLUE}${s}"
+            docker exec -i "${s}" ugd_service unigrid masternodedebug
+        fi
+    done
+}
+
+GET_BLOCKS() {
+    echo -e "${BLUE}Getting curent block count of all containers"
+    CONTAINERS=$(docker ps -a --no-trunc --format '{{.Names}}' | tr '\n' ' ')
+    sleep 0.1
+    declare -a ARR=($CONTAINERS)
+    for s in "${ARR[@]}"; do
+        if [[ "$s" != 'watchtower' ]]; then
+            echo -e "${BLUE}${s}"
+            docker exec -i "${s}" ugd_service unigrid getblockcount
+        fi
+    done
+}
+
+GET_LIST() {
+    echo -e "${BLUE}Gridnode container list"
+    docker ps -a --format "table {{.Names}}\t{{.Image}}\t{{.Ports}}\t{{.ID}}"
+}
+
+RESTART_ALL() {
+    echo -e "${BLUE}Restarting all gridnode containers"
+    docker restart $(docker ps -q)
+}
+
+STOP_ALL() {
+    echo -e "${BLUE}Stopping all gridnode containers"
+    docker stop $(docker ps -a -q)
+}
+
+START_ALL() {
+    echo -e "${BLUE}Starting all gridnode containers"
+    docker start $(docker ps -a -q)
+}
+
+SHOW_ASCII() {
+    ASCII_ART
+    if [[ "${ASCII_ART}" ]]; then
+        ${ASCII_ART}
+    fi
+}
+
+CONFIRM_RUN() {
+    while true; do
+        echo
+        echo
+        echo -e "${RED}Warning!"
+        echo -e "Running this script will delete all Unigrid containers and volumes on this machine."
+        echo -e "${CYAN}"
+        read -p "Are you sure you want to run this script?" yn
+        echo
+        echo
+        case $yn in
+        [Yy]*)
+            break
+            continue
+            ;;
+        [Nn]*) exit ;;
+        *) echo "Please answer yes or no." ;;
+        esac
+    done
+}
+
+FIND_DOCKER_IMAGES() {
+    IMAGES=$(docker ps -a --no-trunc --format '{{.Names}}' | tr '\n' ' ')
+    sleep 0.1
+    declare -a ARR=($IMAGES)
+    FILTERED_ARRAY=()
+    for s in "${ARR[@]}"; do
+        if [[ "${s:0:3}" = 'ugd' ]]; then
+            echo -e "Found container name: ${s}"
+            FILTERED_ARRAY+=("${s}")
+        fi
+    done
+    echo -e "${BLUE}Remove containers" "${FILTERED_ARRAY[@]}"
+    docker rm "${FILTERED_ARRAY[@]}" --force
+}
+
+FIND_VOLUMES() {
+    VOLUMES=$(docker volume ls | tr '\n' ' ')
+    sleep 0.1
+    declare -a ARR=($VOLUMES)
+    FILTERED_ARRAY=()
+    for s in "${ARR[@]}"; do
+        if [[ "${s:0:11}" = 'data_volume' ]]; then
+            echo -e "Found volume name: ${s}"
+            FILTERED_ARRAY+=("${s}")
+        fi
+    done
+    echo -e "${BLUE}Remove containers" "${FILTERED_ARRAY[@]}"
+    docker volume rm "${FILTERED_ARRAY[@]}"
+}
+
+REMOVE_ALL() {
+    CONFIRM_RUN
+    FIND_DOCKER_IMAGES
+    FIND_VOLUMES
+}
+
+case "$1" in
+help)
+    # show list of commands
+    SHOW_ASCII
+    echo
+    echo -e "${BLUE}Usage: "${NAME}" {list|status|debug|restart-all|stop-all|start-all|get-blocks|remove-all <COMMAND>}"
+    echo
+    exit 1
+    ;;
+status)
+    SHOW_ASCII
+    echo
+    GET_STATUS
+    echo
+    ;;
+list)
+    SHOW_ASCII
+    echo
+    GET_LIST
+    echo
+    ;;
+restart-all)
+    SHOW_ASCII
+    echo
+    RESTART_ALL
+    echo
+    ;;
+stop-all)
+    SHOW_ASCII
+    echo
+    STOP_ALL
+    echo
+    ;;
+start-all)
+    SHOW_ASCII
+    echo
+    START_ALL
+    echo
+    ;;
+debug)
+    SHOW_ASCII
+    echo
+    DEBUG
+    echo
+    ;;
+get-blocks)
+    SHOW_ASCII
+    echo
+    GET_BLOCKS
+    echo
+    ;;
+remove-all)
+    SHOW_ASCII
+    echo
+    REMOVE_ALL
+    echo
+    ;;
+*)
+    SHOW_ASCII
+    echo -e "${RED}Missing command, use '${NAME} help' for more info."
+    exit 1
+    ;;
+esac
+
+# End of script.
