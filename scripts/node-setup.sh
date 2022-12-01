@@ -49,92 +49,13 @@ RE='^[0-9]+$'
 GN_KEY=''
 DAY_ARRAY=(86400 172800 259200)
 DAY_INTERVAL=''
-SETUP_MODE='single'
+TESTNET=""
+
 ASCII_ART
 
 if [[ "${ASCII_ART}" ]]; then
     ${ASCII_ART}
 fi
-
-while test $# -gt 0; do
-case "$1" in
-    -h|--help)
-    echo "$package - attempt to capture frames"
-    echo " "
-    echo "$package [options] application [arguments]"
-    echo " "
-    echo "options:"
-    echo "-h, --help                    show brief help"
-    echo "-t, --tx-detail=TXID          specify an address and an id for the tx detail\n example: 149448f8c06cda10f1e7a30db5df0911cb7e3e6c1b8e3656c232f3caa3cb7965 0"
-    echo "-k, --private-key=GN_KEY      specify the genereted private key from the wallet"
-    echo "-n, --name=NODE_NAME      specify the node name"
-    exit 0
-    ;;
-    -t)
-    shift
-    if test $# -gt 0; then
-        export TXID=$1
-    else
-        echo "no tx id specified"
-        exit 1
-    fi
-    shift
-    ;;
-    --tx-id*)
-    export TXID=`echo $1 | sed -e 's/^[^=]*=//g'`
-    shift
-    ;;
-    -k)
-    shift
-    if test $# -gt 0; then
-        export GN_KEY=$1
-    else
-        echo "no private key specified"
-        exit 1
-    fi
-    shift
-    ;;
-    --private-key*)
-    export GN_KEY=`echo $1 | sed -e 's/^[^=]*=//g'`
-    shift
-    ;;
-    -i)
-    shift
-    if test $# -gt 0; then
-        export INDEX=$1
-    else
-        echo "no index specified"
-        exit 1
-    fi
-    shift
-    ;;
-    --index*)
-    export INDEX=`echo $1 | sed -e 's/^[^=]*=//g'`
-    shift
-    ;;
-    -n)
-    shift
-    if test $# -gt 0; then
-        export NODE_NAME=$1
-    else
-        echo "no node name specified"
-        exit 1
-    fi
-    shift
-    ;;
-    --name*)
-    export NODE_NAME=`echo $1 | sed -e 's/^[^=]*=//g'`
-    shift
-    ;;
-    *)
-    break
-    ;;
-esac
-done
-echo "TXID: $TXID";
-echo "GN_KEY: $GN_KEY";
-echo "INDEX: $INDEX";
-echo "NODE_NAME: $NODE_NAME";
 
 PRE_INSTALL_CHECK() {
     # Check for sudo
@@ -198,46 +119,12 @@ PRE_INSTALL_CHECK() {
 
     echo "y" | sudo ufw enable >/dev/null 2>&1
     sudo ufw reload
-
-    if [[ -z ${TXID} || -z ${GN_KEY} || -z ${INDEX} || -z ${NODE_NAME} ]]; then
-        echo 'running in single node setup...'
-    else
-        SETUP_MODE='multiple'
-        MULTIPLE_NODE_SETUP_STATUS_FILE="setup_status.txt"
-        if [[ ${INDEX} -eq '1' ]]; then
-            rm -rf "${MULTIPLE_NODE_SETUP_STATUS_FILE}" || exit
-            touch "${MULTIPLE_NODE_SETUP_STATUS_FILE}" || exit
-            echo "wait_for_ugd_docker_1_synced" >> "${MULTIPLE_NODE_SETUP_STATUS_FILE}"
-        else
-            FILE_EXIST="false"
-            if [[ -f "${MULTIPLE_NODE_SETUP_STATUS_FILE}" ]]; then
-                FILE_EXIST='true'
-            else
-                FILE_EXIST='false'
-            fi
-            LOADING_ARRAY=("|-..|" "|.-.|" "|..-|" "|.-.|")
-            LOADING_COUNT=0
-            while [[ ${FILE_EXIST} = 'false' ]]; do
-                echo "${LOADING_ARRAY[${LOADING_COUNT}]} Checking if first node is setup..."
-                LOADING_COUNT=$((LOADING_COUNT+1))
-                if [[ $LOADING_COUNT = 4 ]]; then 
-                    LOADING_COUNT=0
-                fi
-                if [[ -f "${MULTIPLE_NODE_SETUP_STATUS_FILE}" ]]; then
-                    FILE_EXIST='true'
-                else
-                    FILE_EXIST='false'
-                fi
-                sleep 0.1
-            done
-        fi
-    fi
 }
 
 INSTALL_DOCKER() {
     # check docker info
     if [ ! -x "$(command -v docker)" ]; then
-        echo -e "${CYAN}Starting Docker Install Script"
+        echo -e "${CYAN}Starting Docker Instll Script"
         CURRENT_USER=$(whoami)
         COUNTER=0
         rm -f ~/install.sh
@@ -275,10 +162,8 @@ GET_TXID() {
     CONFIRMED=0
     MSG='Please enter the txid and output ID for your gridnode \n example: 149448f8c06cda10f1e7a30db5df0911cb7e3e6c1b8e3656c232f3caa3cb7965 0'
     while [[ "${CONFIRMED}" = 0 ]]; do
-        if [ -z "${TXID}" ]; then
-            echo -e "${CYAN}${MSG}"
-            read -p "txid & output ID:" TXID
-        fi
+        echo -e "${CYAN}${MSG}"
+        read -p "txid & output ID:" TXID
         TX_DETAILS=($TXID)
         if [[ -z "${TX_DETAILS[0]}" || -z "${TX_DETAILS[1]}" ]]; then
             MSG="${RED}Please enter both a txid and output ID"
@@ -334,49 +219,19 @@ GET_TXID() {
 CHECK_FOR_NODE_INSTALL() {
     CHECK_NODE="$(docker ps -a -f name=ugd_docker_1 | grep -w ugd_docker_1)"
     if [ -z "${CHECK_NODE}" ]; then
-        echo "ugd_docker_1_missing" >> "${MULTIPLE_NODE_SETUP_STATUS_FILE}"
-        if [[ ${SETUP_MODE} = "single" ]] || [[ ${SETUP_MODE} = "multiple" && ${INDEX} -eq "1" ]]; then
-            echo -e "${GREEN}Clean install docker image"
-            NEW_SERVER_NAME="${BASE_NAME}1"
-            docker run -it -d \
-                --name="${NEW_SERVER_NAME}" \
-                --mount source="${DATA_VOLUME}1",destination=/root/.unigrid \
-                --restart unless-stopped \
-                -p "${PORTB}:${PORTB}" \
-                -p "${PORTA}:${PORTA}" unigrid/unigrid:"${IMAGE_SOURCE}"
-        fi
+        echo -e "${GREEN}Clean install docker image"
+        NEW_SERVER_NAME="${BASE_NAME}1"
+        docker run -it -d \
+            --name="${NEW_SERVER_NAME}" \
+            --mount source="${DATA_VOLUME}1",destination=/root/.unigrid \
+            --restart unless-stopped \
+            -p "${PORTB}:${PORTB}" \
+            -p "${PORTA}:${PORTA}" unigrid/unigrid:"${IMAGE_SOURCE}"
     else
-        if [[ ${SETUP_MODE} = "multiple" && ${INDEX} -eq "1" ]]; then   
-            sed -i "/wait_for_ugd_docker_1_synced/d" ${MULTIPLE_NODE_SETUP_STATUS_FILE} >/dev/null
-            sed -i "/ugd_docker_1_missing/d" ${MULTIPLE_NODE_SETUP_STATUS_FILE} >/dev/null
-        fi
-        if [[ ${SETUP_MODE} = "single" ]] || [[ ${SETUP_MODE} = "multiple" && ${INDEX} -gt "1" ]]; then
-            DONE_WAITING_FOR_FIRST_NODE=''
-            if grep -Fxq "wait_for_ugd_docker_1_synced" "${MULTIPLE_NODE_SETUP_STATUS_FILE}" ; then
-                DONE_WAITING_FOR_FIRST_NODE='false'
-            else
-                DONE_WAITING_FOR_FIRST_NODE='true'
-            fi
-
-            LOADING_ARRAY=("|o..|" "|.o.|" "|..o|" "|.o.|")
-            LOADING_COUNT=0
-            while [[ ${DONE_WAITING_FOR_FIRST_NODE} = 'false' && ${INDEX} -gt '1' ]]; do
-                echo "${LOADING_ARRAY[${LOADING_COUNT}]} Waiting for 1st node to be installed and synced"
-                LOADING_COUNT=$((LOADING_COUNT+1))
-                if [[ $LOADING_COUNT = 4 ]]; then 
-                    LOADING_COUNT=0
-                fi
-                if grep -Fxq "wait_for_ugd_docker_1_synced" "${MULTIPLE_NODE_SETUP_STATUS_FILE}" ; then
-                    DONE_WAITING_FOR_FIRST_NODE='false'
-                else
-                    DONE_WAITING_FOR_FIRST_NODE='true'
-                fi
-                sleep 5
-            done
-        fi
         echo -e "${CYAN}1st node already installed"
         INSTALL_NEW_NODE
     fi
+
 }
 
 IS_PORT_OPEN() {
@@ -491,17 +346,8 @@ INSTALL_NEW_NODE() {
     fi
     echo ${ARRAY_LENGTH}
     LAST_DOCKER_NUMBER=${NUMBERS_ARRAY[$((${ARRAY_LENGTH} - 1))]}
+    NODE_NUMBER="$(($LAST_DOCKER_NUMBER + 1))"
 
-    if [[ $SETUP_MODE = "multiple" ]]; then
-        if grep -Fxq "ugd_docker_1_missing" "${MULTIPLE_NODE_SETUP_STATUS_FILE}" ; then
-            NODE_NUMBER="$((${LAST_DOCKER_NUMBER} + ${INDEX} - 1))"
-        else
-            NODE_NUMBER="$((${LAST_DOCKER_NUMBER} + ${INDEX}))"
-        fi
-    else
-        NODE_NUMBER="$(($LAST_DOCKER_NUMBER + 1))"
-    fi
-    echo -e "NODE_NUMBER: ${NODE_NUMBER}"
     ######### GET HIGHEST NUMBER IN THE ARRAY FOR IMAGES ##########
 
     NEW_SERVER_NAME=${BASE_NAME}${NODE_NUMBER}
@@ -522,11 +368,10 @@ INSTALL_NEW_NODE() {
         -i \
         -d \
         -t \
-        -v ${DATA_VOLUME}${NODE_NUMBER}:/from \
+        -v ${DATA_VOLUME}1:/from \
         -v ${DATA_VOLUME}${NODE_NUMBER}:/to \
         alpine ash -c "cd /from ; cp -av . /to"
     echo "Done copying volume"
-    sleep 3
     docker run -it -d --name="${NEW_SERVER_NAME}" \
         -p "${PORTB}:${PORTB}" \
         -p "${PORTA}:${PORTA}" \
@@ -556,9 +401,9 @@ INSTALL_WATCHTOWER() {
             --name watchtower \
             -v /var/run/docker.sock:/var/run/docker.sock \
             containrrr/watchtower -c \
-            --trace --interval "${DAY_INTERVAL}"
+            --trace --include-restarting --interval "${DAY_INTERVAL}"
     else
-        echo -e "${CYAN}Watchtower already installed... skipping"
+        echo -e "${CYAN}Watchtower already intalled... skipping"
     fi
 }
 
@@ -579,6 +424,14 @@ CREATE_CONF_FILE() {
     echo -e "EXTERNALIP: ${EXTERNALIP}"
     BIND="0.0.0.0"
     # :${PORTB}"
+     if [[ "${IMAGE_SOURCE}" = "testnet" ]];
+    then
+    PRIV_KEY="gridnodeprivkey=${GN_KEY}"
+    NODE_NAME="gridnode=1"
+    else
+    PRIV_KEY="masternodeprivkey=${GN_KEY}"
+    NODE_NAME="masternode=1"
+    fi
     touch "${HOME}/${CONF}"
     cat <<COIN_CONF | sudo tee "${HOME}/${CONF}" >/dev/null
 rpcuser=${NEW_SERVER_NAME}_rpc
@@ -600,8 +453,8 @@ daemon=1
 logtimestamps=1
 listen=1
 bind=${BIND}
-masternodeprivkey=${GN_KEY}
-masternode=1
+${PRIV_KEY}
+${NODE_NAME}
 COIN_CONF
     docker cp "${HOME}/${CONF}" "${CURRENT_CONTAINER_ID}":"${USR_HOME}/${DIRECTORY}/${CONF}"
     rm -f "${HOME}/${CONF}"
@@ -643,7 +496,13 @@ INSTALL_COMPLETE() {
     # Add commands to .bash_aliases
     BASH_ALIASES='.bash_aliases'
     SINGLE_QUOTE="'"
-    COMMAND="alias ${NEW_SERVER_NAME}=${SINGLE_QUOTE}${NEW_SERVER_NAME}(){ docker exec -i ${NEW_SERVER_NAME} ugd_service unigrid \$@;}; ${NEW_SERVER_NAME}${SINGLE_QUOTE}"
+    if [[ "${IMAGE_SOURCE}" = "testnet" ]];
+    then
+    TESTNET="-${IMAGE_SOURCE}"
+    else
+    TESTNET=""
+    fi
+    COMMAND="alias ${NEW_SERVER_NAME}=${SINGLE_QUOTE}${NEW_SERVER_NAME}(){ docker exec -i ${NEW_SERVER_NAME} ugd_service unigrid ${TESTNET} \$@;}; ${NEW_SERVER_NAME}${SINGLE_QUOTE}"
     if [ "$COMMAND" != "" ]; then
         echo $COMMAND >>~/$BASH_ALIASES
         . ~/.bashrc
@@ -678,9 +537,9 @@ INSTALL_COMPLETE() {
         TASK=''
         STATUS=''
         while [[ "$BLOCK_COUNT" = "-1" ]]; do
-            BLOCK_COUNT=$(docker exec -i "${CURRENT_CONTAINER_ID}" ugd_service unigrid getblockcount)
+            BLOCK_COUNT=$(docker exec -i "${CURRENT_CONTAINER_ID}" ugd_service unigrid ${TESTNET} getblockcount)
             sleep 0.1
-            BOOT_STRAPPING=$(docker exec -i "${CURRENT_CONTAINER_ID}" ugd_service unigrid getbootstrappinginfo)
+            BOOT_STRAPPING=$(docker exec -i "${CURRENT_CONTAINER_ID}" ugd_service unigrid ${TESTNET} getbootstrappinginfo)
             sleep 0.1
             echo "${BOOT_STRAPPING}" >>data.json
             PROGRESS=$(jq -r '.progress' data.json)
@@ -709,12 +568,6 @@ INSTALL_COMPLETE() {
         fi
     done
 
-    if [[ $INDEX -eq '1' ]]; then
-        sed -i "/wait_for_ugd_docker_1_synced/d" ${MULTIPLE_NODE_SETUP_STATUS_FILE} >/dev/null
-        #rm -rf "${MULTIPLE_NODE_SETUP_STATUS_FILE}" || exit
-        echo -e "1st Node setup is completed and synced!"
-    fi
-
     echo -e "${GREEN}Current block"
     docker exec -i "${CURRENT_CONTAINER_ID}" ugd_service unigrid getblockcount
     echo
@@ -723,26 +576,19 @@ INSTALL_COMPLETE() {
     echo -e "${CYAN}To call the unigrid daemon use..."
     echo -e "${GREEN}${NEW_SERVER_NAME} getblockcount"
     echo -e "${ORANGE}Once you have started your gridnode from your local wallet"
-    echo -e "${GREEN}${NEW_SERVER_NAME} masternodedebug"
+    echo -e "${GREEN}${NEW_SERVER_NAME} gridnodedebug"
     echo -e "${CYAN}Some commands may not work immediately until the wallet fully syncs."
     echo
     echo -e "${CYAN}To access the container you can type..."
     echo -e "${GREEN}docker exec -it ${NEW_SERVER_NAME} /bin/bash"
-    echo
-    echo -e "${CYAN}To restart your docker container."
-    echo -e "${GREEN}docker restart ${NEW_SERVER_NAME}"
-    echo -e "${CYAN}To see a full list of all containers use..."
-    echo -e "${GREEN}docker ps"
-    echo
-    echo -e "${CYAN}For help"
-    echo -e "${GREEN}docker --help"
     echo 
     echo -e "${BLUE}There are also a set of helper commands for all containers."
-    echo -e "For a list of commands type 'unigrid help'"
+    echo -e "For a list of commands type..."
+    echo -e "${GREEN}unigrid help"
     echo
     echo -e "${CYAN}If you would like to install another node simply run this script again."
     echo
-    echo -e "${GREEN}Add the below info to your masternode.conf file."
+    echo -e "${GREEN}Add the below info to your gridnode.conf file."
     echo -e "The info is also stored in a file ~/$FILENAME"
     echo -e
     echo -e "${NEW_SERVER_NAME} ${EXTERNALIP} ${GN_KEY} ${TX_DETAILS[0]} ${TX_DETAILS[1]}"

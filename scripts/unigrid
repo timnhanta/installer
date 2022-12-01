@@ -50,7 +50,7 @@ DEBUG() {
     for s in "${ARR[@]}"; do
         if [[ "$s" != 'watchtower' ]]; then
             echo -e "${BLUE}${s}"
-            docker exec -i "${s}" ugd_service unigrid masternodedebug
+            docker exec -i "${s}" ugd_service unigrid gridnodedebug
         fi
     done
 }
@@ -150,6 +150,7 @@ REMOVE_ALL() {
     CONFIRM_RUN
     FIND_DOCKER_IMAGES
     FIND_VOLUMES
+    rm -rf .bash_aliases gridnodes.txt
 }
 
 case "$1" in
