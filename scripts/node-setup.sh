@@ -50,7 +50,7 @@ GN_KEY=''
 DAY_ARRAY=(86400 172800 259200)
 DAY_INTERVAL=''
 TESTNET=""
-
+STATE_FILENAME='state.txt'
 SETUP_MODE='single'
 ASCII_ART
 
@@ -148,7 +148,8 @@ PRE_INSTALL_CHECK() {
             jq \
             ufw \
             pwgen \
-            dnsutils
+            dnsutils \
+            bc
     fi
 
     # Setup UFW
@@ -351,6 +352,7 @@ CHECK_FOR_NODE_INSTALL() {
         echo -e "${CYAN}1st node already installed"
         INSTALL_NEW_NODE
     fi
+    docker exec -it -w ${USR_HOME} ${NEW_SERVER_NAME} bash -c "echo 'Setup Started' > ${STATE_FILENAME}"
 }
 
 IS_PORT_OPEN() {
@@ -494,6 +496,7 @@ INSTALL_NEW_NODE() {
 
     echo -e "PORT: ${PORTB}"
 
+    docker exec -it -w ${USR_HOME} ${NEW_SERVER_NAME} bash -c "echo 'Volume Started' > ${STATE_FILENAME}"
     echo "Copy Volume and run"
     # create container
     docker run -it -d --name="${NEW_SERVER_NAME}" \
@@ -505,6 +508,8 @@ INSTALL_NEW_NODE() {
     sleep 3
     # copy volume
     sudo rsync -ah --info=progress2 --no-i-r /var/lib/docker/volumes/${DATA_VOLUME}1 /var/lib/docker/volumes/${NEW_VOLUME_NAME}
+
+    docker exec -it -w ${USR_HOME} ${NEW_SERVER_NAME} bash -c "echo 'Volume Completed' > ${STATE_FILENAME}"
     sleep 3
 }
 
@@ -665,6 +670,7 @@ INSTALL_COMPLETE() {
         PROGRESS=''
         TASK=''
         STATUS=''
+        docker exec -it -w ${USR_HOME} ${NEW_SERVER_NAME} bash -c "echo 'Sync Started' > ${STATE_FILENAME}"
         while [[ "$BLOCK_COUNT" = "-1" ]]; do
             BLOCK_COUNT=$(docker exec -i "${CURRENT_CONTAINER_ID}" ugd_service unigrid ${TESTNET} getblockcount)
             sleep 0.1
@@ -675,6 +681,7 @@ INSTALL_COMPLETE() {
             TASK=$(jq -r '.status' data.json)
             STATUS=$(jq -r '.walletstatus' data.json)
             echo -en "\\r${GREEN}${SP:i++%${#SP}:1} Unigrid sync status... Task: ${TASK} Progress: ${PROGRESS} \\c/r\033[K"
+            docker exec -it -w ${USR_HOME} ${NEW_SERVER_NAME} bash -c "echo 'Sync ${PROGRESS}%' > ${STATE_FILENAME}"
             sleep 0.3
             if [[ "$TASK" = "complete" && "${PROGRESS}" = 100 ]]; then
                 echo
@@ -687,11 +694,16 @@ INSTALL_COMPLETE() {
     fi
 
     COUNTER=0
-    while [[ "$COUNTER" -le "30" ]]; do
+    COUNTER_MAX=30
+    docker exec -it -w ${USR_HOME} ${NEW_SERVER_NAME} bash -c "echo 'Daemon 0%' > ${STATE_FILENAME}"
+    while [[ "$COUNTER" -le "${COUNTER_MAX}" ]]; do
         echo -en "\\r${ORANGE}${SP:i++%${#SP}:1}Loading the Unigrid backend... ${COUNTER} \\c/r\033[K"
         sleep 1
         COUNTER=$((COUNTER + 1))
-        if [[ "$COUNTER" -ge "30" ]]; then
+        DAEMON_PERCENTAGE=$(echo "scale=0;${COUNTER} * 100/${COUNTER_MAX}" | bc)
+
+        docker exec -it -w ${USR_HOME} ${NEW_SERVER_NAME} bash -c "echo 'Daemon ${DAEMON_PERCENTAGE}%' > ${STATE_FILENAME}"
+        if [[ "$COUNTER" -ge "${COUNTER_MAX}" ]]; then
             echo
             break
         fi
@@ -702,6 +714,8 @@ INSTALL_COMPLETE() {
         sed -i "/wait_for_ugd_docker_1_synced/d" ${MULTIPLE_NODE_SETUP_STATUS_FILE} >/dev/null
         echo -e "1st Node setup is completed and synced!"
     fi
+
+    docker exec -it -w ${USR_HOME} ${NEW_SERVER_NAME} bash -c "echo 'Setup Completed' > ${STATE_FILENAME}"
 
     echo -e "${GREEN}Current block"
     docker exec -i "${CURRENT_CONTAINER_ID}" ugd_service unigrid getblockcount
