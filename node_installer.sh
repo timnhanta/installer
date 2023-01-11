@@ -147,7 +147,7 @@ done
     # shellcheck source=/root/___gn.sh
     . ~/___gn.sh "${ARGS[@]}"
     START_INSTALL
-)
+) &
 
 # shellcheck source=/root/.bashrc
 . ~/.bashrc
