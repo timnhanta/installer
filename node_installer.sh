@@ -145,9 +145,8 @@ done
 (
     # shellcheck disable=SC1091
     # shellcheck source=/root/___gn.sh
-    echo test
     ~/___gn.sh "${ARGS[@]}"
-    START_INSTALL | tee ~/output.log
+    START_INSTALL
 )
 
 # shellcheck source=/root/.bashrc
