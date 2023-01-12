@@ -24,8 +24,8 @@ bash -c "$(wget -qO - raw.githubusercontent.com/unigrid-project/unigrid-installe
 
 '
 
-exec > >(tee -i output.log)
-exec 2>&1
+#exec > >(tee -i output.log)
+#exec 2>&1
 
 ARGS=("$@")
 
