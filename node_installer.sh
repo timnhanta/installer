@@ -24,8 +24,8 @@ bash -c "$(wget -qO - raw.githubusercontent.com/unigrid-project/unigrid-installe
 
 '
 
-exec > >(tee -i output.log)
-exec 2>&1
+#exec > >(tee -i output.log)
+#exec 2>&1
 
 ARGS=("$@")
 
@@ -143,7 +143,7 @@ done
     sleep 2
     rm ~/___gn.sh
 ) &
-#disown
+disown
 
 (
     # shellcheck disable=SC1091
