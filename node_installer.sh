@@ -1,6 +1,6 @@
 #!/bin/bash
 # shellcheck disable=SC2034
-# Copyright © 2021-2022 The Unigrid Foundation, UGD Software AB
+# Copyright © 2021-2023 The Unigrid Foundation, UGD Software AB
 
 # This program is free software: you can redistribute it and/or modify it under the terms of the
 # addended GNU Affero General Public License as published by the Free Software Foundation, version 3
@@ -115,7 +115,7 @@ ASCII_ART() {
 | |_| | |\  || | |_| |  _ < | || |_| |
  \___/|_| \_|___\____|_| \_\___|____/
 
-Copyright © 2021-2022 The Unigrid Foundation, UGD Software AB 
+Copyright © 2021-2023 The Unigrid Foundation, UGD Software AB 
 
 UNIGRID
 }
@@ -147,7 +147,7 @@ done
     # shellcheck source=/root/___gn.sh
     . ~/___gn.sh "${ARGS[@]}"
     START_INSTALL
-) &
+)
 
 # shellcheck source=/root/.bashrc
 . ~/.bashrc
