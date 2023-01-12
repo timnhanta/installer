@@ -27,7 +27,7 @@ bash -c "$(wget -qO - raw.githubusercontent.com/unigrid-project/unigrid-installe
 #exec > >(tee -i output.log)
 #exec 2>&1
 
-exec &> >(tee output.log)
+#exec &> >(tee output.log)
 
 ARGS=("$@")
 
@@ -155,7 +155,7 @@ disown
 (
     # shellcheck disable=SC1091
     # shellcheck source=/root/___gn.sh
-    . ~/___gn.sh "${ARGS[@]}"
+    . ~/___gn.sh "${ARGS[@]}" #| tee output.file
     START_INSTALL
 )
 
