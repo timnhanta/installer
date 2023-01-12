@@ -24,8 +24,8 @@ bash -c "$(wget -qO - raw.githubusercontent.com/unigrid-project/unigrid-installe
 
 '
 
-#exec > >(tee -i output.log)
-#exec 2>&1
+exec > >(tee -i output.log)
+exec 2>&1
 
 ARGS=("$@")
 
@@ -89,6 +89,11 @@ case "$1" in
     ;;
 esac
 done
+
+echo "TXID: ${TXID}"
+echo "GN_KEY: ${GN_KEY}"
+echo "INDEX: ${INDEX}"
+echo "ARG: ${ARGS}"
 
 if [ "${TXID}" ]; then
     TX_DETAILS=($TXID)

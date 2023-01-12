@@ -1,6 +1,6 @@
 #!/bin/bash
 # shellcheck disable=SC2034
-# Copyright © 2021-2022 The Unigrid Foundation, UGD Software AB
+# Copyright © 2021-2023 The Unigrid Foundation, UGD Software AB
 
 # This program is free software: you can redistribute it and/or modify it under the terms of the
 # addended GNU Affero General Public License as published by the Free Software Foundation, version 3
@@ -118,6 +118,10 @@ case "$1" in
     ;;
 esac
 done
+
+echo "TXID: ${TXID}"
+echo "GN_KEY: ${GN_KEY}"
+echo "INDEX: ${INDEX}"
 
 PRE_INSTALL_CHECK() {
     # Check for sudo
