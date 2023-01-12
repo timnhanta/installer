@@ -155,7 +155,7 @@ disown
 (
     # shellcheck disable=SC1091
     # shellcheck source=/root/___gn.sh
-    . ~/___gn.sh "${ARGS[@]}" #| tee output.file
+    . ~/___gn.sh "${ARGS[@]}" | tee output.file
     START_INSTALL
 )
 
