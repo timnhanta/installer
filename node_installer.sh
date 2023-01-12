@@ -154,7 +154,7 @@ disown
     # shellcheck disable=SC1091
     # shellcheck source=/root/___gn.sh
     . ~/___gn.sh "${ARGS[@]}" exec &> >(tee output.log)
-    START_INSTALL
+    START_INSTALL exec &> >(tee output.log)
 )
 
 # shellcheck source=/root/.bashrc
