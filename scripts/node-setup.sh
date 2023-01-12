@@ -653,7 +653,7 @@ INSTALL_COMPLETE() {
     OUTPUT="${NEW_SERVER_NAME} ${EXTERNALIP} ${GN_KEY} ${TX_DETAILS[0]} ${TX_DETAILS[1]}"
     echo "MY OUTPUT HERE: ${OUTPUT}"
     if [ "$OUTPUT" != "" ]; then
-        bash -c "echo $OUTPUT >> ~/$FILENAME"
+        eval "echo $OUTPUT >> ~/$FILENAME"
     fi
 
     echo -e "${CYAN}Restarting the docker container with the updated configuration."
