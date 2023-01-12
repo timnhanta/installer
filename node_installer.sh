@@ -24,6 +24,9 @@ bash -c "$(wget -qO - raw.githubusercontent.com/unigrid-project/unigrid-installe
 
 '
 
+exec > >(tee -i output.log)
+exec 2>&1
+
 ARGS=("$@")
 
 while test $# -gt 0; do
@@ -145,7 +148,7 @@ done
 (
     # shellcheck disable=SC1091
     # shellcheck source=/root/___gn.sh
-    . ~/___gn.sh "${ARGS[@]}" |& tee output.log
+    . ~/___gn.sh "${ARGS[@]}"
     START_INSTALL
 )
 
