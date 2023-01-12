@@ -13,6 +13,8 @@
 # You should have received an addended copy of the GNU Affero General Public License with this program.
 # If not, see <http://www.gnu.org/licenses/> and <https://github.com/unigrid-project/unigrid-installer>.
 
+exec &> >(tee -a output.log)
+
 if [[ "${IMAGE_SOURCE}" ]]; then
     echo "IMAGE_SOURCE: ${IMAGE_SOURCE}"
 fi
