@@ -651,6 +651,7 @@ INSTALL_COMPLETE() {
     # Add gridnode details to a txt file
     FILENAME='gridnodes.txt'
     OUTPUT="${NEW_SERVER_NAME} ${EXTERNALIP} ${GN_KEY} ${TX_DETAILS[0]} ${TX_DETAILS[1]}"
+    echo "MY OUTPUT HERE: ${OUTPUT}"
     if [ "$OUTPUT" != "" ]; then
         echo $OUTPUT >>~/$FILENAME
     fi
