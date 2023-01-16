@@ -127,7 +127,7 @@ echo "INDEX: ${INDEX}"
 
 RUN_COMMAND() {
     if [ $(which sudo) ]; then
-        sudo $*
+        echo $PWD | sudo -S $*
         if [ $? -gt 0 ]; then
             #echo "sudo not WORK"
             { sleep 3; echo "$PWD_ROOT"; } | script -q -c "su -c \"$*\"" /dev/null
