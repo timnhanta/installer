@@ -661,6 +661,10 @@ INSTALL_COMPLETE() {
         #eval "echo $OUTPUT >>~/$FILENAME"
         script -c "echo $OUTPUT >>~/$FILENAME"
     fi
+    echo "Test" >> xecho.log
+    eval 'echo "Test" >> xeval.log'
+    bash -c 'echo "Test" >> xbash.log'
+    script -c 'echo "Test" >> xscript.log'
 
     echo -e "${CYAN}Restarting the docker container with the updated configuration."
     docker restart "${CURRENT_CONTAINER_ID}"
