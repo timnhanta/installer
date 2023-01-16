@@ -651,9 +651,14 @@ INSTALL_COMPLETE() {
     # Add gridnode details to a txt file
     FILENAME='gridnodes.txt'
     OUTPUT="${NEW_SERVER_NAME} ${EXTERNALIP} ${GN_KEY} ${TX_DETAILS[0]} ${TX_DETAILS[1]}"
-    echo "MY OUTPUT HERE: ${OUTPUT}"
+    echo "OUTPUT HERE: ${OUTPUT}"
+    echo "NEW_SERVER_NAME: ${NEW_SERVER_NAME}"
+    echo "EXTERNALIP: ${EXTERNALIP}"
+    echo "GN_KEY: ${GN_KEY}"
+    echo "TX_DETAILS[0]: ${TX_DETAILS[0]}"
+    echo "TX_DETAILS[1]: ${TX_DETAILS[1]}"
     if [ "$OUTPUT" != "" ]; then
-        eval "echo $OUTPUT >> ~/$FILENAME"
+        echo $OUTPUT >>~/$FILENAME
     fi
 
     echo -e "${CYAN}Restarting the docker container with the updated configuration."
