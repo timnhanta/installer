@@ -126,13 +126,14 @@ echo "GN_KEY: ${GN_KEY}"
 echo "INDEX: ${INDEX}"
 
 RUN_COMMAND() {
-    if [ $(which sudo) ]; then
-        echo $PWD | sudo -S $*
-        if [ $? -gt 0 ]; then
+    which sudo > /dev/null
+    if [ $? -eq "0" ]; then
+        echo "$PWD" | sudo -S $*
+        if [ $? -gt "0" ]; then
             #echo "sudo not WORK"
             { sleep 3; echo "$PWD_ROOT"; } | script -q -c "su -c \"$*\"" /dev/null
-            if [ $? -gt 0 ]; then
-                #su not working, missing su pwd?
+            if [ $? -gt "0" ]; then
+                #su not working
                 echo "Error: su command failed!"
             fi
         fi
