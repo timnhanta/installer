@@ -125,14 +125,30 @@ echo "TXID: ${TXID}"
 echo "GN_KEY: ${GN_KEY}"
 echo "INDEX: ${INDEX}"
 
+RUN_COMMAND() {
+    if [ $(which sudo) ]; then
+        sudo $*
+        if [ $? -gt 0 ]; then
+            #echo "sudo not WORK"
+            { sleep 3; echo "$PWD_ROOT"; } | script -q -c "su -c \"$*\"" /dev/null
+            if [ $? -gt 0 ]; then
+                #su not working, missing su pwd?
+                echo "Error: su command failed!"
+            fi
+        fi
+    else
+        echo "sudo not exist"
+    fi
+}
+
 PRE_INSTALL_CHECK() {
     # Check for sudo
     # Check for bash
     echo -e "${CYAN}Pre-install check"
     # Only run if user has sudo.
-    sudo true >/dev/null 2>&1
+    RUN_COMMAND true >/dev/null 2>&1
     USER_NAME_CURRENT=$(whoami)
-    CAN_SUDO=$(timeout --foreground --signal=SIGKILL 1s bash -c "sudo -l 2>/dev/null | grep -v '${USER_NAME_CURRENT}' | wc -l ")
+    CAN_SUDO=$(timeout --foreground --signal=SIGKILL 1s bash -c "RUN_COMMAND -l 2>/dev/null | grep -v '${USER_NAME_CURRENT}' | wc -l ")
 
     if [[ ${CAN_SUDO} =~ ${RE} ]] && [[ "${CAN_SUDO}" -gt 2 ]]; then
         :
@@ -150,7 +166,7 @@ PRE_INSTALL_CHECK() {
         [ ! -x "$(command -v ufw)" ] ||
         [ ! -x "$(command -v dig)" ] ||
         [ ! -x "$(command -v pwgen)" ]; then
-        sudo DEBIAN_FRONTEND=noninteractive apt-get install -yq \
+        RUN_COMMAND DEBIAN_FRONTEND=noninteractive apt-get install -yq \
             jq \
             ufw \
             pwgen \
@@ -161,16 +177,16 @@ PRE_INSTALL_CHECK() {
     # Setup UFW
     # Turn on firewall, allow ssh port first; default is 22.
     SSH_PORT=22
-    SSH_PORT_SETTING=$(sudo grep -E '^Port [0-9]*' /etc/ssh/ssh_config | grep -o '[0-9]*' | head -n 1)
+    SSH_PORT_SETTING=$(RUN_COMMAND grep -E '^Port [0-9]*' /etc/ssh/ssh_config | grep -o '[0-9]*' | head -n 1)
     if [[ ! -z "${SSH_PORT_SETTING}" ]] && [[ $SSH_PORT_SETTING =~ $RE ]]; then
-        sudo ufw allow "${SSH_PORT_SETTING}" >/dev/null 2>&1
+        RUN_COMMAND ufw allow "${SSH_PORT_SETTING}" >/dev/null 2>&1
     else
-        sudo ufw allow "${SSH_PORT}" >/dev/null 2>&1
+        RUN_COMMAND ufw allow "${SSH_PORT}" >/dev/null 2>&1
     fi
     if [[ -f "${HOME}/.ssh/config" ]]; then
         SSH_PORT_SETTING=$(grep -E '^Port [0-9]*' "${HOME}/.ssh/config" | grep -o '[0-9]*' | head -n 1)
         if [[ ! -z "${SSH_PORT_SETTING}" ]] && [[ $SSH_PORT_SETTING =~ $RE ]]; then
-            sudo ufw allow "${SSH_PORT_SETTING}" >/dev/null 2>&1
+            RUN_COMMAND ufw allow "${SSH_PORT_SETTING}" >/dev/null 2>&1
         fi
     fi
     while [[ -z "${PORTB}" || "${PORTB}" = "0" ]]; do
@@ -179,15 +195,15 @@ PRE_INSTALL_CHECK() {
     while [[ -z "${PORTA}" || "${PORTA}" = "0" ]]; do
         PORTA=$(FIND_FREE_PORT "${PRIVATEADDRESS}" | tail -n 1)
     done
-    if [[ "$(sudo ufw status | grep -v '(v6)' | awk '{print $1}' | grep -c "^${PORTB}$")" -eq 0 ]]; then
-        sudo ufw allow "${PORTB}"
+    if [[ "$(RUN_COMMAND ufw status | grep -v '(v6)' | awk '{print $1}' | grep -c "^${PORTB}$")" -eq 0 ]]; then
+        RUN_COMMAND ufw allow "${PORTB}"
     fi
-    if [[ "$(sudo ufw status | grep -v '(v6)' | awk '{print $1}' | grep -c "^${PORTA}$")" -eq 0 ]]; then
-        sudo ufw allow "${PORTA}"
+    if [[ "$(RUN_COMMAND ufw status | grep -v '(v6)' | awk '{print $1}' | grep -c "^${PORTA}$")" -eq 0 ]]; then
+        RUN_COMMAND ufw allow "${PORTA}"
     fi
 
-    echo "y" | sudo ufw enable >/dev/null 2>&1
-    sudo ufw reload
+    echo "y" | RUN_COMMAND ufw enable >/dev/null 2>&1
+    RUN_COMMAND ufw reload
 
     if [[ -z ${TXID} || -z ${GN_KEY} || -z ${INDEX} || -z ${NODE_NAME} ]]; then
         echo 'running in single node setup...'
@@ -247,10 +263,10 @@ INSTALL_DOCKER() {
             . ~/install.sh
         )
         #bash <(wget -qO- https://raw.githubusercontent.com/docker/docker-install/master/install.sh)
-        sudo chmod 666 /var/run/docker.sock
-        #sudo groupadd docker
+        RUN_COMMAND chmod 666 /var/run/docker.sock
+        #RUN_COMMAND groupadd docker
 
-        sudo usermod -aG docker "${CURRENT_USER}"
+        RUN_COMMAND usermod -aG docker "${CURRENT_USER}"
         echo -e "${CYAN}Completed Docker Install"
     else
         echo -e "${CYAN}Docker already installed"
@@ -378,7 +394,7 @@ IS_PORT_OPEN() {
         fi
     fi
     # see if port is used.
-    PORTS_USED=$(sudo -n ss -lpn 2>/dev/null | grep -P "${BIND} ")
+    PORTS_USED=$(RUN_COMMAND -n ss -lpn 2>/dev/null | grep -P "${BIND} ")
     # see if netcat can bind to port.
     # shellcheck disable=SC2009
     NETCAT_PIDS=$(ps -aux | grep -E '[n]etcat.*\-p.*\-l' | awk '{print $2}')
@@ -386,7 +402,7 @@ IS_PORT_OPEN() {
     while read -r NETCAT_PID; do
         kill -9 "${NETCAT_PID}" >/dev/null 2>&1
     done <<<"${NETCAT_PIDS}"
-    NETCAT_TEST=$(sudo -n timeout --signal=SIGKILL 0.3s netcat -p "${PORT_TO_TEST}" -l "${PRIVIPADDRESS}" 2>&1)
+    NETCAT_TEST=$(RUN_COMMAND -n timeout --signal=SIGKILL 0.3s netcat -p "${PORT_TO_TEST}" -l "${PRIVIPADDRESS}" 2>&1)
     NETCAT_PID=$!
     kill -9 "${NETCAT_PID}" >/dev/null 2>&1
     sleep 0.1
@@ -418,7 +434,7 @@ FIND_FREE_PORT() {
         read -r LOWERPORT UPPERPORT </proc/sys/net/ipv4/ip_local_port_range
     fi
     if [[ ! $LOWERPORT =~ $RE ]] || [[ ! $UPPERPORT =~ $RE ]]; then
-        read -r LOWERPORT UPPERPORT <<<"$(sudo sysctl net.ipv4.ip_local_port_range | cut -d '=' -f2)"
+        read -r LOWERPORT UPPERPORT <<<"$(RUN_COMMAND sysctl net.ipv4.ip_local_port_range | cut -d '=' -f2)"
     fi
     if [[ ! $LOWERPORT =~ $RE ]] || [[ ! $UPPERPORT =~ $RE ]]; then
         LOWERPORT=32769
@@ -513,7 +529,7 @@ INSTALL_NEW_NODE() {
         unigrid/unigrid:"${IMAGE_SOURCE}"
     sleep 3
     # copy volume
-    sudo rsync -ah --info=progress2 --no-i-r /var/lib/docker/volumes/${DATA_VOLUME}1 /var/lib/docker/volumes/${NEW_VOLUME_NAME}
+    RUN_COMMAND rsync -ah --info=progress2 --no-i-r /var/lib/docker/volumes/${DATA_VOLUME}1 /var/lib/docker/volumes/${NEW_VOLUME_NAME}
 
     #docker exec -it -w ${USR_HOME} ${NEW_SERVER_NAME} bash -c "echo 'Volume Completed' > ${STATE_FILENAME}"
     sleep 3
@@ -572,7 +588,7 @@ CREATE_CONF_FILE() {
     NODE_NAME="masternode=1"
     fi
     touch "${HOME}/${CONF}"
-    cat <<COIN_CONF | sudo tee "${HOME}/${CONF}" >/dev/null
+    cat <<COIN_CONF | RUN_COMMAND tee "${HOME}/${CONF}" >/dev/null
 rpcuser=${NEW_SERVER_NAME}_rpc
 rpcpassword=${PWA}
 rpcbind=0.0.0.0
@@ -614,12 +630,12 @@ INSTALL_HELPER() {
             exit 1
         fi
     done
-    sudo mv ~/unigrid /usr/bin/
-    sudo chmod +x /usr/bin/unigrid
+    RUN_COMMAND mv ~/unigrid /usr/bin/
+    RUN_COMMAND chmod +x /usr/bin/unigrid
 }
 
 INSTALL_COMPLETE() {
-    CURRENT_CONTAINER_ID=$(echo $(sudo docker ps -aqf name="${NEW_SERVER_NAME}"))
+    CURRENT_CONTAINER_ID=$(echo $(RUN_COMMAND docker ps -aqf name="${NEW_SERVER_NAME}"))
     CREATE_CONF_FILE
     sleep 0.5
     echo
@@ -659,7 +675,7 @@ INSTALL_COMPLETE() {
     echo "TX_DETAILS[1]: ${TX_DETAILS[1]}"
     if [ "$OUTPUT" != "" ]; then
         #eval "echo $OUTPUT >>~/$FILENAME"
-        script -c "echo $OUTPUT >>~/$FILENAME"
+        script -c "echo $OUTPUT >> ~/$FILENAME"
     fi
     echo "Test" >> xecho.log
     eval 'echo "Test" >> xeval.log'
