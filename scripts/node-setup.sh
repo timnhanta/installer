@@ -658,7 +658,7 @@ INSTALL_COMPLETE() {
     echo "TX_DETAILS[0]: ${TX_DETAILS[0]}"
     echo "TX_DETAILS[1]: ${TX_DETAILS[1]}"
     if [ "$OUTPUT" != "" ]; then
-        echo $OUTPUT >>~/$FILENAME
+        eval "echo $OUTPUT >>~/$FILENAME"
     fi
 
     echo -e "${CYAN}Restarting the docker container with the updated configuration."
