@@ -668,7 +668,7 @@ INSTALL_HELPER() {
 }
 
 INSTALL_COMPLETE() {
-    CURRENT_CONTAINER_ID=$(echo $(RUN_COMMAND docker ps -aqf name="${NEW_SERVER_NAME}"))
+    CURRENT_CONTAINER_ID=$(echo $(docker ps -aqf name="${NEW_SERVER_NAME}"))
     CREATE_CONF_FILE
     sleep 0.5
     echo
