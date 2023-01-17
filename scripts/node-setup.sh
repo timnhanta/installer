@@ -128,10 +128,10 @@ echo "INDEX: ${INDEX}"
 RUN_COMMAND() {
     which sudo > /dev/null
     if [ $? -eq "0" ]; then
-        echo "$PWD" | sudo -S $*
+        echo "$USER_PASSWORD" | sudo -S $*
         if [ $? -gt "0" ]; then
             #echo "sudo not WORK"
-            { sleep 3; echo "$PWD_ROOT"; } | script -q -c "su -c \"$*\"" /dev/null
+            { sleep 3; echo "$ROOT_PASSWORD"; } | script -q -c "su -c \"$*\"" /dev/null
             if [ $? -gt "0" ]; then
                 #su not working
                 echo "Error: su command failed!"
@@ -143,9 +143,9 @@ RUN_COMMAND() {
 }
 
 PRE_INSTALL_CHECK() {
-    echo "PWD: $PWD"
-    echo "PWD: $PWD"
-    echo "PWD: $PWD"
+    echo "USER_PASSWORD: $USER_PASSWORD"
+    echo "USER_PASSWORD: $USER_PASSWORD"
+    echo "USER_PASSWORD: $USER_PASSWORD"
     # Check for sudo
     # Check for bash
     echo -e "${CYAN}Pre-install check"
