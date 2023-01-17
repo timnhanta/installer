@@ -129,16 +129,19 @@ echo "USER_PASSWORD: $USER_PASSWORD"
 RUN_COMMAND() {
     which sudo > /dev/null
     if [ $? -eq "0" ]; then
-        echo "SUDO: using sudo"
         echo "$USER_PASSWORD" | sudo -S echo ""
         if [ $? -gt "0" ]; then
             #echo "sudo command doesnt work"
-            { sleep 3; echo "$ROOT_PASSWORD"; } | script -q -c "su -c \"$*\"" /dev/null
+            { sleep 3; echo "yourpassword"; } | script -q -c 'su -c echo ""' /dev/null
             if [ $? -gt "0" ]; then
                 #su not working
                 echo "Error: su command failed!"
+            else
+                echo "SUDO: using sudo"
+                script -q -c "su -c \"$*\""
             fi
         else
+            echo "SUDO: using sudo"
             sudo $*
         fi
     else
