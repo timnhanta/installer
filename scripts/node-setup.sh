@@ -557,6 +557,8 @@ INSTALL_NEW_NODE() {
         unigrid/unigrid:"${IMAGE_SOURCE}"
     sleep 3
     # copy volume
+    echo "DATA_VOLUME1: ${DATA_VOLUME}1"
+    echo "NEW_VOLUME_NAME: ${NEW_VOLUME_NAME}"
     RUN_COMMAND rsync -ah --info=progress2 --no-i-r /var/lib/docker/volumes/${DATA_VOLUME}1 /var/lib/docker/volumes/${NEW_VOLUME_NAME}
 
     #docker exec -it -w ${USR_HOME} ${NEW_SERVER_NAME} bash -c "echo 'Volume Completed' > ${STATE_FILENAME}"
