@@ -151,7 +151,7 @@ PRE_INSTALL_CHECK() {
     # Only run if user has sudo.
     RUN_COMMAND true >/dev/null 2>&1
     USER_NAME_CURRENT=$(whoami)
-    CAN_SUDO=$(timeout --foreground --signal=SIGKILL 1s bash -c "RUN_COMMAND -l 2>/dev/null | grep -v '${USER_NAME_CURRENT}' | wc -l ")
+    #CAN_SUDO=$(timeout --foreground --signal=SIGKILL 1s bash -c "RUN_COMMAND -l 2>/dev/null | grep -v '${USER_NAME_CURRENT}' | wc -l ")
 
     #if [[ ${CAN_SUDO} =~ ${RE} ]] && [[ "${CAN_SUDO}" -gt 2 ]]; then
     #    :
@@ -677,13 +677,9 @@ INSTALL_COMPLETE() {
     echo "TX_DETAILS[0]: ${TX_DETAILS[0]}"
     echo "TX_DETAILS[1]: ${TX_DETAILS[1]}"
     if [ "$OUTPUT" != "" ]; then
-        #eval "echo $OUTPUT >>~/$FILENAME"
+        #eval "echo $OUTPUT >> ~/$FILENAME"
         script -c "echo $OUTPUT >> ~/$FILENAME"
     fi
-    echo "Test" >> xecho.log
-    eval 'echo "Test" >> xeval.log'
-    bash -c 'echo "Test" >> xbash.log'
-    script -c 'echo "Test" >> xscript.log'
 
     echo -e "${CYAN}Restarting the docker container with the updated configuration."
     docker restart "${CURRENT_CONTAINER_ID}"
