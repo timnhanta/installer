@@ -179,8 +179,12 @@ PRE_INSTALL_CHECK() {
 
     # Setup UFW
     # Turn on firewall, allow ssh port first; default is 22.
+    echo "0"
+    echo "0"
     SSH_PORT=22
     SSH_PORT_SETTING=$(RUN_COMMAND grep -E '^Port [0-9]*' /etc/ssh/ssh_config | grep -o '[0-9]*' | head -n 1)
+    echo "__"
+    echo "__"
     if [[ ! -z "${SSH_PORT_SETTING}" ]] && [[ $SSH_PORT_SETTING =~ $RE ]]; then
         RUN_COMMAND ufw allow "${SSH_PORT_SETTING}" >/dev/null 2>&1
     else
