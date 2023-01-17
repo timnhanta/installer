@@ -617,6 +617,7 @@ CREATE_CONF_FILE() {
     PRIV_KEY="masternodeprivkey=${GN_KEY}"
     NODE_NAME="masternode=1"
     fi
+    echo "HOME/CONF: ${HOME}/${CONF}"
     touch "${HOME}/${CONF}"
     cat <<COIN_CONF | RUN_COMMAND tee "${HOME}/${CONF}" >/dev/null
 rpcuser=${NEW_SERVER_NAME}_rpc
@@ -641,6 +642,8 @@ bind=${BIND}
 ${PRIV_KEY}
 ${NODE_NAME}
 COIN_CONF
+    echo "HOME/CONF: ${HOME}/${CONF}"
+    echo "Container ID: ${CURRENT_CONTAINER_ID}"
     docker cp "${HOME}/${CONF}" "${CURRENT_CONTAINER_ID}":"${USR_HOME}/${DIRECTORY}/${CONF}"
     rm -f "${HOME}/${CONF}"
 }
