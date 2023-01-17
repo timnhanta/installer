@@ -186,15 +186,13 @@ PRE_INSTALL_CHECK() {
     # Turn on firewall, allow ssh port first; default is 22.
     SSH_PORT=22
     SSH_PORT_SETTING=$(grep -E '^Port [0-9]*' /etc/ssh/ssh_config | grep -o '[0-9]*' | head -n 1)
+    echo "SSH_PORT_SETTING: ${SSH_PORT_SETTING}"
     if [[ ! -z "${SSH_PORT_SETTING}" ]] && [[ $SSH_PORT_SETTING =~ $RE ]]; then
-        echo "/etc/ssh/ssh_config port setting missing!!!!"
         RUN_COMMAND ufw allow "${SSH_PORT_SETTING}" >/dev/null 2>&1
     else
-        echo "/etc/ssh/ssh_config port setting is not missing!!!!"
         RUN_COMMAND ufw allow "${SSH_PORT}" >/dev/null 2>&1
     fi
     if [[ -f "${HOME}/.ssh/config" ]]; then
-        echo "${HOME}/.ssh/config is not missing!!!!"
         SSH_PORT_SETTING=$(grep -E '^Port [0-9]*' "${HOME}/.ssh/config" | grep -o '[0-9]*' | head -n 1)
         if [[ ! -z "${SSH_PORT_SETTING}" ]] && [[ $SSH_PORT_SETTING =~ $RE ]]; then
             RUN_COMMAND ufw allow "${SSH_PORT_SETTING}" >/dev/null 2>&1
@@ -206,14 +204,10 @@ PRE_INSTALL_CHECK() {
     while [[ -z "${PORTA}" || "${PORTA}" = "0" ]]; do
         PORTA=$(FIND_FREE_PORT "${PRIVATEADDRESS}" | tail -n 1)
     done
-    echo "PORTA: ${PORTA}"
-    echo "PORTB: ${PORTB}"
     if [[ "$(RUN_COMMAND ufw status | grep -v '(v6)' | awk '{print $1}' | grep -c "^${PORTB}$")" -eq 0 ]]; then
-        echo "ALLOW PORT B !!!"
         RUN_COMMAND ufw allow "${PORTB}"
     fi
     if [[ "$(RUN_COMMAND ufw status | grep -v '(v6)' | awk '{print $1}' | grep -c "^${PORTA}$")" -eq 0 ]]; then
-        echo "ALLOW PORT A !!!"
         RUN_COMMAND ufw allow "${PORTA}"
     fi
     echo "y" | RUN_COMMAND ufw enable >/dev/null 2>&1
