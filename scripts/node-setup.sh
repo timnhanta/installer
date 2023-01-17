@@ -130,7 +130,7 @@ RUN_COMMAND() {
     which sudo > /dev/null
     if [ $? -eq "0" ]; then
         echo "SUDO: using sudo"
-        echo "$USER_PASSWORD" | sudo -S $*
+        echo "$USER_PASSWORD" | sudo -S echo ""
         if [ $? -gt "0" ]; then
             #echo "sudo command doesnt work"
             { sleep 3; echo "$ROOT_PASSWORD"; } | script -q -c "su -c \"$*\"" /dev/null
@@ -138,6 +138,8 @@ RUN_COMMAND() {
                 #su not working
                 echo "Error: su command failed!"
             fi
+        else
+            sudo $*
         fi
     else
         echo "sudo not exist"
