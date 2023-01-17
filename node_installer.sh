@@ -94,6 +94,7 @@ esac
 done
 
 echo "USER_PASSWORD: ${USER_PASSWORD}"
+echo "USER_PASSWORD: $USER_PASSWORD"
 echo "TXID: ${TXID}"
 echo "GN_KEY: ${GN_KEY}"
 echo "ARG: ${ARGS}"

@@ -124,13 +124,15 @@ done
 echo "TXID: ${TXID}"
 echo "GN_KEY: ${GN_KEY}"
 echo "USER_PASSWORD: ${USER_PASSWORD}"
+echo "USER_PASSWORD: $USER_PASSWORD"
 
 RUN_COMMAND() {
     which sudo > /dev/null
     if [ $? -eq "0" ]; then
+        echo "SUDO: using sudo"
         echo "$USER_PASSWORD" | sudo -S $*
         if [ $? -gt "0" ]; then
-            #echo "sudo not WORK"
+            #echo "sudo command doesnt work"
             { sleep 3; echo "$ROOT_PASSWORD"; } | script -q -c "su -c \"$*\"" /dev/null
             if [ $? -gt "0" ]; then
                 #su not working
