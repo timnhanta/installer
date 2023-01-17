@@ -101,18 +101,18 @@ case "$1" in
     export GN_KEY=`echo $1 | sed -e 's/^[^=]*=//g'`
     shift
     ;;
-    -i)
+    -p)
     shift
     if test $# -gt 0; then
-        export INDEX=$1
+        export USER_PASSWORD=$1
     else
         echo "no index specified"
         exit 1
     fi
     shift
     ;;
-    --index*)
-    export INDEX=`echo $1 | sed -e 's/^[^=]*=//g'`
+    --user-password*)
+    export USER_PASSWORD=`echo $1 | sed -e 's/^[^=]*=//g'`
     shift
     ;;
     *)

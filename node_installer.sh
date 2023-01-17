@@ -42,6 +42,7 @@ case "$1" in
     echo "-h, --help                    show brief help"
     echo "-t, --tx-detail=TXID          specify an address and an id for the tx detail\n example: 149448f8c06cda10f1e7a30db5df0911cb7e3e6c1b8e3656c232f3caa3cb7965 0"
     echo "-k, --private-key=GN_KEY      specify the genereted private key from the wallet"
+    echo "-p, --user-password=USER_PASSWORD      specify the user's password"
     exit 0
     ;;
     -t)
@@ -72,18 +73,18 @@ case "$1" in
     export GN_KEY=`echo $1 | sed -e 's/^[^=]*=//g'`
     shift
     ;;
-    -i)
+    -p)
     shift
     if test $# -gt 0; then
-        export INDEX=$1
+        export USER_PASSWORD=$1
     else
-        echo "no index specified"
+        echo "no password specified"
         exit 1
     fi
     shift
     ;;
-    --index*)
-    export INDEX=`echo $1 | sed -e 's/^[^=]*=//g'`
+    --user-password*)
+    export USER_PASSWORD=`echo $1 | sed -e 's/^[^=]*=//g'`
     shift
     ;;
     *)
@@ -97,6 +98,9 @@ echo "GN_KEY: ${GN_KEY}"
 echo "INDEX: ${INDEX}"
 echo "ARG: ${ARGS}"
 
+    echo "USER_PASSWORD: $USER_PASSWORD"
+    echo "USER_PASSWORD: $USER_PASSWORD"
+    echo "USER_PASSWORD: $USER_PASSWORD"
 if [ "${TXID}" ]; then
     TX_DETAILS=($TXID)
     if [[ -z "${TX_DETAILS[0]}" || -z "${TX_DETAILS[1]}" ]]; then
