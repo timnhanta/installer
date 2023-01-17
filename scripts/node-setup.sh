@@ -645,7 +645,6 @@ COIN_CONF
     echo "HOME/CONF: ${HOME}/${CONF}"
     echo "Container ID: ${CURRENT_CONTAINER_ID}"
     docker cp "${HOME}/${CONF}" "${CURRENT_CONTAINER_ID}":"${ROOT_HOME}/${DIRECTORY}/${CONF}"
-    cp "${HOME}/${CONF}" "${HOME}/${CONF}_${CURRENT_CONTAINER_ID}"
     rm -f "${HOME}/${CONF}"
 }
 
