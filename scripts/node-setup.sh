@@ -186,28 +186,42 @@ PRE_INSTALL_CHECK() {
     else
         RUN_COMMAND ufw allow "${SSH_PORT}" >/dev/null 2>&1
     fi
+    echo "A"
+    echo "A"
     if [[ -f "${HOME}/.ssh/config" ]]; then
         SSH_PORT_SETTING=$(grep -E '^Port [0-9]*' "${HOME}/.ssh/config" | grep -o '[0-9]*' | head -n 1)
         if [[ ! -z "${SSH_PORT_SETTING}" ]] && [[ $SSH_PORT_SETTING =~ $RE ]]; then
             RUN_COMMAND ufw allow "${SSH_PORT_SETTING}" >/dev/null 2>&1
         fi
     fi
+    echo "B"
+    echo "B"
     while [[ -z "${PORTB}" || "${PORTB}" = "0" ]]; do
         PORTB=$(FIND_FREE_PORT "${PRIVATEADDRESS}" | tail -n 1)
     done
+    echo "C"
+    echo "C"
     while [[ -z "${PORTA}" || "${PORTA}" = "0" ]]; do
         PORTA=$(FIND_FREE_PORT "${PRIVATEADDRESS}" | tail -n 1)
     done
+    echo "D"
+    echo "D"
     if [[ "$(RUN_COMMAND ufw status | grep -v '(v6)' | awk '{print $1}' | grep -c "^${PORTB}$")" -eq 0 ]]; then
         RUN_COMMAND ufw allow "${PORTB}"
     fi
+    echo "E"
+    echo "E"
     if [[ "$(RUN_COMMAND ufw status | grep -v '(v6)' | awk '{print $1}' | grep -c "^${PORTA}$")" -eq 0 ]]; then
         RUN_COMMAND ufw allow "${PORTA}"
     fi
+    echo "F"
+    echo "F"
 
     echo "y" | RUN_COMMAND ufw enable >/dev/null 2>&1
     RUN_COMMAND ufw reload
 
+    echo "G"
+    echo "G"
     if [[ -z ${TXID} || -z ${GN_KEY} || -z ${INDEX} || -z ${NODE_NAME} ]]; then
         echo 'running in single node setup...'
     else
@@ -239,6 +253,8 @@ PRE_INSTALL_CHECK() {
             done
         fi
     fi
+    echo "X"
+    echo "X"
 }
 
 INSTALL_DOCKER() {
