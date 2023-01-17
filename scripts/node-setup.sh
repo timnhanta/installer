@@ -124,6 +124,7 @@ done
 echo "TXID: ${TXID}"
 echo "GN_KEY: ${GN_KEY}"
 echo "INDEX: ${INDEX}"
+echo "USER_PASSWORD: ${USER_PASSWORD}"
 
 RUN_COMMAND() {
     which sudo > /dev/null
@@ -143,9 +144,6 @@ RUN_COMMAND() {
 }
 
 PRE_INSTALL_CHECK() {
-    echo "USER_PASSWORD: $USER_PASSWORD"
-    echo "USER_PASSWORD: $USER_PASSWORD"
-    echo "USER_PASSWORD: $USER_PASSWORD"
     # Check for sudo
     # Check for bash
     echo -e "${CYAN}Pre-install check"
