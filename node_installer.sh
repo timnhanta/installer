@@ -96,7 +96,6 @@ done
 echo "USER_PASSWORD: ${USER_PASSWORD}"
 echo "TXID: ${TXID}"
 echo "GN_KEY: ${GN_KEY}"
-echo "INDEX: ${INDEX}"
 echo "ARG: ${ARGS}"
 
 if [ "${TXID}" ]; then

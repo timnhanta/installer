@@ -123,7 +123,6 @@ done
 
 echo "TXID: ${TXID}"
 echo "GN_KEY: ${GN_KEY}"
-echo "INDEX: ${INDEX}"
 echo "USER_PASSWORD: ${USER_PASSWORD}"
 
 RUN_COMMAND() {
