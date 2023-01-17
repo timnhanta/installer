@@ -153,17 +153,17 @@ PRE_INSTALL_CHECK() {
     USER_NAME_CURRENT=$(whoami)
     CAN_SUDO=$(timeout --foreground --signal=SIGKILL 1s bash -c "RUN_COMMAND -l 2>/dev/null | grep -v '${USER_NAME_CURRENT}' | wc -l ")
 
-    if [[ ${CAN_SUDO} =~ ${RE} ]] && [[ "${CAN_SUDO}" -gt 2 ]]; then
-        :
-    else
-        echo "Script must be run as a user with no password sudo privileges"
-        echo "To switch to the root user type"
-        echo
-        echo "sudo su"
-        echo
-        echo "And then re-run this command."
-        return 1 2>/dev/null || exit 1
-    fi
+    #if [[ ${CAN_SUDO} =~ ${RE} ]] && [[ "${CAN_SUDO}" -gt 2 ]]; then
+    #    :
+    #else
+    #    echo "Script must be run as a user with no password sudo privileges"
+    #    echo "To switch to the root user type"
+    #    echo
+    #    echo "sudo su"
+    #    echo
+    #    echo "And then re-run this command."
+    #    return 1 2>/dev/null || exit 1
+    #fi
 
     if [ ! -x "$(command -v jq)" ] ||
         [ ! -x "$(command -v ufw)" ] ||
