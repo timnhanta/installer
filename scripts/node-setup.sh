@@ -143,6 +143,9 @@ RUN_COMMAND() {
 }
 
 PRE_INSTALL_CHECK() {
+    echo "PWD: $PWD"
+    echo "PWD: $PWD"
+    echo "PWD: $PWD"
     # Check for sudo
     # Check for bash
     echo -e "${CYAN}Pre-install check"
