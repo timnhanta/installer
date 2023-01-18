@@ -633,7 +633,7 @@ INSTALL_COMPLETE() {
         if [[ "${BLOCK_COUNT}" = '' ]]; then
             while [ "${BLOCK_COUNT}" = '' ]; do
                 BLOCK_COUNT=$(docker exec -i "${CURRENT_CONTAINER_ID}" ugd_service unigrid getblockcount)
-                #sleep 1
+                sleep 1
             done
         fi
 
