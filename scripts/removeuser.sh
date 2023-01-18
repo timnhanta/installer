@@ -45,6 +45,29 @@ Copyright © 2021-2023 The Unigrid Foundation, UGD Software AB
 UNIGRID
 }
 
+RUN_COMMAND() {
+    which sudo > /dev/null
+    if [ $? -eq "0" ]; then
+        echo "$USER_PASSWORD" | sudo -S echo ""
+        if [ $? -gt "0" ]; then
+            #echo "sudo command doesnt work"
+            { sleep 3; echo "yourpassword"; } | script -q -c 'su -c echo ""' /dev/null
+            if [ $? -gt "0" ]; then
+                #su not working
+                echo "Error: su command failed!"
+            else
+                echo "SUDO: using su"
+                script -q -c "su -c \"$*\""
+            fi
+        else
+            echo "SUDO: using sudo"
+            sudo $*
+        fi
+    else
+        echo "sudo not exist"
+    fi
+}
+
 CLEANUP_SYSTEMCTL() {
     echo "Removing ${USER_NAME} data files"
     systemctl stop "${USER_NAME}".service 
@@ -57,7 +80,7 @@ CLEANUP_SYSTEMCTL() {
 
 REMOVE_USER() {
     echo "Removing ${USER_NAME} from server"
-    sudo userdel -r "${USER_NAME}"
+    RUN_COMMAND userdel -r "${USER_NAME}"
 }
 
 ASCII_ART

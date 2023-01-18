@@ -137,7 +137,7 @@ RUN_COMMAND() {
                 #su not working
                 echo "Error: su command failed!"
             else
-                echo "SUDO: using sudo"
+                echo "SUDO: using su"
                 script -q -c "su -c \"$*\""
             fi
         else
@@ -530,7 +530,6 @@ CREATE_CONF_FILE() {
     PRIV_KEY="masternodeprivkey=${GN_KEY}"
     NODE_NAME="masternode=1"
     fi
-    echo "HOME/CONF: ${HOME}/${CONF}"
     touch "${HOME}/${CONF}"
     cat <<COIN_CONF | tee "${HOME}/${CONF}" >/dev/null
 rpcuser=${NEW_SERVER_NAME}_rpc
@@ -555,8 +554,6 @@ bind=${BIND}
 ${PRIV_KEY}
 ${NODE_NAME}
 COIN_CONF
-    echo "HOME/CONF: ${HOME}/${CONF}"
-    echo "Container ID: ${CURRENT_CONTAINER_ID}"
     docker cp "${HOME}/${CONF}" "${CURRENT_CONTAINER_ID}":"${ROOT_HOME}/${DIRECTORY}/${CONF}"
     rm -f "${HOME}/${CONF}"
 }
